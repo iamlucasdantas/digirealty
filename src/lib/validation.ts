@@ -33,8 +33,8 @@ export const LeadSchema = z.object({
     })
     .optional(),
   sessionId: z.string().max(64).optional(),
-  // Honeypot — bots fill this, humans don't see it.
-  website: z.string().max(0).optional(),
+  // Honeypot — bots fill this, humans don't see it. Handler inspects & silently drops.
+  website: z.string().optional(),
 });
 
 export type LeadInput = z.infer<typeof LeadSchema>;

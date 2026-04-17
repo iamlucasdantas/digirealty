@@ -61,9 +61,7 @@ export async function generateServiceCityPage(input: ServiceCityPageInput): Prom
   const res = await c.messages.create({
     model: MODEL,
     max_tokens: 2000,
-    system: [
-      { type: "text", text: SYSTEM_BRAND_BRIEF, cache_control: { type: "ephemeral" } },
-    ],
+    system: SYSTEM_BRAND_BRIEF,
     messages: [
       {
         role: "user",
@@ -103,9 +101,7 @@ export async function generateComparison(input: ComparisonInput): Promise<Genera
   const res = await c.messages.create({
     model: MODEL,
     max_tokens: 2500,
-    system: [
-      { type: "text", text: SYSTEM_BRAND_BRIEF, cache_control: { type: "ephemeral" } },
-    ],
+    system: SYSTEM_BRAND_BRIEF,
     messages: [
       {
         role: "user",
@@ -125,7 +121,7 @@ export async function generateBusinessDescription(name: string, services: string
   const res = await c.messages.create({
     model: MODEL,
     max_tokens: 400,
-    system: [{ type: "text", text: SYSTEM_BRAND_BRIEF, cache_control: { type: "ephemeral" } }],
+    system: SYSTEM_BRAND_BRIEF,
     messages: [
       {
         role: "user",
@@ -144,7 +140,7 @@ export async function suggestInternalLinks(
   const res = await c.messages.create({
     model: MODEL,
     max_tokens: 600,
-    system: [{ type: "text", text: SYSTEM_BRAND_BRIEF, cache_control: { type: "ephemeral" } }],
+    system: SYSTEM_BRAND_BRIEF,
     messages: [
       {
         role: "user",
