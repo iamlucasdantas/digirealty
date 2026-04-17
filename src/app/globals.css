@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: "Inter", system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-ink antialiased;
+}
+
+.prose-al :where(h2) {
+  @apply font-display text-3xl font-semibold mt-10 mb-4;
+}
+
+.prose-al :where(h3) {
+  @apply font-display text-xl font-semibold mt-6 mb-3;
+}
+
+.prose-al :where(p) {
+  @apply my-4 leading-relaxed text-ink/90;
+}
+
+.prose-al :where(ul) {
+  @apply list-disc pl-6 space-y-1 my-4;
+}

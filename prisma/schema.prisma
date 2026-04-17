@@ -1,0 +1,438 @@
+// ──────────────────────────────────────────────────────────────
+// AestheticsLeads — Prisma schema
+// Postgres is the system of record. Designed for multi-city scale.
+// ──────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Geography ────────────────────────────────────────────────
+
+model Market {
+  id         String    @id @default(cuid())
+  slug       String    @unique // "quad-cities"
+  name       String             // "Quad Cities"
+  state      String             // "IA" (primary)
+  metaTitle  String?
+  metaDesc   String?
+  heroCopy   String?
+  isActive   Boolean   @default(true)
+  launchedAt DateTime?
+  cities     City[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([isActive])
+}
+
+model City {
+  id         String     @id @default(cuid())
+  slug       String     @unique // "davenport-ia"
+  name       String             // "Davenport"
+  state      String             // "IA"
+  marketId   String
+  market     Market     @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  population Int?
+  latitude   Float?
+  longitude  Float?
+  metaTitle  String?
+  metaDesc   String?
+  businesses Business[]
+  seoPages   SeoPage[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([marketId])
+  @@index([state])
+}
+
+// ─── Taxonomy ─────────────────────────────────────────────────
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique // "med-spa", "cosmetic-dentistry"
+  name      String
+  icon      String?
+  sortOrder Int       @default(0)
+  services  Service[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Service {
+  id           String            @id @default(cuid())
+  slug         String            @unique // "botox", "dermal-fillers"
+  name         String
+  categoryId   String
+  category     Category          @relation(fields: [categoryId], references: [id])
+  shortDesc    String?
+  longDesc     String?           @db.Text
+  avgPriceLow  Int?              // cents
+  avgPriceHigh Int?              // cents
+  priceUnit    String?           // "per unit", "per session"
+  faq          Json?             // [{q, a}]
+  seoKeywords  String[]
+  businesses   BusinessService[]
+  leads        Lead[]
+  seoPages     SeoPage[]
+  comparisonsA Comparison[]      @relation("ComparisonA")
+  comparisonsB Comparison[]      @relation("ComparisonB")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([categoryId])
+}
+
+// ─── Businesses (directory) ───────────────────────────────────
+
+enum ListingTier {
+  FREE
+  VERIFIED
+  FEATURED
+  PREMIUM
+}
+
+enum BusinessStatus {
+  DRAFT
+  PUBLISHED
+  SUSPENDED
+}
+
+model Business {
+  id           String            @id @default(cuid())
+  slug         String            @unique
+  name         String
+  legalName    String?
+  status       BusinessStatus    @default(PUBLISHED)
+  tier         ListingTier       @default(FREE)
+  tierUntil    DateTime?
+  cityId       String
+  city         City              @relation(fields: [cityId], references: [id])
+  address1     String?
+  address2     String?
+  zip          String?
+  phone        String?
+  email        String?
+  website      String?
+  bookingUrl   String?
+  latitude     Float?
+  longitude    Float?
+  hours        Json?             // { mon: "9-5", ... }
+  descShort    String?
+  descLong     String?           @db.Text
+  logoUrl      String?
+  heroImageUrl String?
+  gallery      String[]          @default([])
+  beforeAfter  Json?             // [{beforeUrl, afterUrl, service}]
+  ratingAvg    Float?            @default(0)
+  ratingCount  Int               @default(0)
+  claimedById  String?
+  claimedBy    User?             @relation("ClaimedBusinesses", fields: [claimedById], references: [id])
+  services     BusinessService[]
+  reviews      Review[]
+  leads        Lead[]
+  adSlots      AdPlacement[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([cityId])
+  @@index([tier, status])
+  @@index([status])
+}
+
+model BusinessService {
+  businessId String
+  serviceId  String
+  priceLow   Int?     // cents
+  priceHigh  Int?     // cents
+  notes      String?
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([businessId, serviceId])
+  @@index([serviceId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  authorName String
+  rating     Int      // 1-5
+  title      String?
+  body       String   @db.Text
+  source     String?  // "google", "firsthand", "import"
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+// ─── Leads (the money) ────────────────────────────────────────
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  ROUTED
+  SOLD
+  ACCEPTED
+  REJECTED
+  CLOSED
+  SPAM
+}
+
+enum LeadSource {
+  ORGANIC
+  PAID
+  DIRECT
+  REFERRAL
+  EMAIL
+  SOCIAL
+}
+
+model Lead {
+  id            String      @id @default(cuid())
+  status        LeadStatus  @default(NEW)
+  source        LeadSource  @default(ORGANIC)
+  // Contact
+  firstName     String
+  lastName      String?
+  email         String
+  phone         String?
+  zip           String?
+  // Intent
+  serviceId     String?
+  service       Service?    @relation(fields: [serviceId], references: [id])
+  budgetCents   Int?
+  timeframe     String?     // "immediate", "1-3m", "researching"
+  qualification Json?       // answers from multi-step form
+  message       String?     @db.Text
+  // Routing
+  businessId    String?
+  business      Business?   @relation(fields: [businessId], references: [id])
+  priceCents    Int?        // what we charge for this lead
+  paidOut       Boolean     @default(false)
+  // Attribution
+  landingPath   String?
+  referrer      String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmContent    String?
+  utmTerm       String?
+  sessionId     String?
+  // Security
+  ipHash        String?
+  userAgent     String?
+  assignments   LeadAssignment[]
+  events        LeadEvent[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([status, createdAt])
+  @@index([businessId])
+  @@index([serviceId])
+  @@index([email])
+}
+
+model LeadAssignment {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  businessId  String
+  priceCents  Int
+  status      String   @default("offered") // offered | accepted | rejected | expired
+  offeredAt   DateTime @default(now())
+  respondedAt DateTime?
+  notes       String?
+
+  @@index([businessId, status])
+  @@index([leadId])
+}
+
+model LeadEvent {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type      String   // created, qualified, routed, email_sent, accepted, rejected
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+// ─── SEO & Content ────────────────────────────────────────────
+
+enum SeoPageType {
+  SERVICE_CITY       // [service] in [city]
+  BEST_SERVICE_CITY  // best [service] in [city]
+  CATEGORY_CITY      // top [category] near me / in [city]
+  COMPARISON         // [A] vs [B]
+  BLOG
+  LANDING
+}
+
+model SeoPage {
+  id            String      @id @default(cuid())
+  type          SeoPageType
+  slug          String      @unique // full url path minus leading slash
+  title         String
+  h1            String
+  metaTitle     String
+  metaDesc      String
+  intro         String?     @db.Text
+  body          String?     @db.Text // MDX
+  faq           Json?
+  schemaJsonLd  Json?
+  serviceId     String?
+  service       Service?    @relation(fields: [serviceId], references: [id])
+  cityId        String?
+  city          City?       @relation(fields: [cityId], references: [id])
+  comparisonId  String?     @unique
+  comparison    Comparison? @relation(fields: [comparisonId], references: [id])
+  aiGenerated   Boolean     @default(false)
+  aiModel       String?
+  published     Boolean     @default(true)
+  pageViews     Int         @default(0)
+  leadCount     Int         @default(0)
+  lastCrawledAt DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([type, published])
+  @@index([serviceId])
+  @@index([cityId])
+}
+
+model Comparison {
+  id         String   @id @default(cuid())
+  slug       String   @unique // "botox-vs-fillers"
+  title      String
+  serviceAId String
+  serviceBId String
+  serviceA   Service  @relation("ComparisonA", fields: [serviceAId], references: [id])
+  serviceB   Service  @relation("ComparisonB", fields: [serviceBId], references: [id])
+  summary    String?  @db.Text
+  pros       Json?    // { a: [...], b: [...] }
+  cons       Json?
+  table      Json?    // structured comparison rows
+  page       SeoPage?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([serviceAId, serviceBId])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  body        String    @db.Text // MDX
+  coverImage  String?
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id])
+  tags        String[]  @default([])
+  aiGenerated Boolean   @default(false)
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+}
+
+// ─── Monetization ─────────────────────────────────────────────
+
+enum Placement {
+  HOMEPAGE_HERO
+  CITY_SIDEBAR
+  SERVICE_TOP
+  BUSINESS_RELATED
+  BLOG_INLINE
+}
+
+model AdPlacement {
+  id         String     @id @default(cuid())
+  placement  Placement
+  businessId String?
+  business   Business?  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  cityId     String?
+  serviceId  String?
+  imageUrl   String?
+  headline   String
+  subhead    String?
+  ctaLabel   String
+  ctaUrl     String
+  startsAt   DateTime
+  endsAt     DateTime
+  priority   Int        @default(0)
+  impressions Int       @default(0)
+  clicks     Int        @default(0)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([placement, active, startsAt, endsAt])
+}
+
+model AffiliateProduct {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  vendor      String
+  url         String   // deep link with affiliate tag
+  imageUrl    String?
+  description String?  @db.Text
+  categoryTag String?  // e.g. "skincare", "red-light-therapy"
+  priceCents  Int?
+  commission  Float?   // %
+  active      Boolean  @default(true)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  revenueCents Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  productId String
+  sessionId String?
+  referrer  String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+// ─── Accounts ─────────────────────────────────────────────────
+
+enum UserRole {
+  VISITOR
+  BUSINESS_OWNER
+  EDITOR
+  ADMIN
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  passwordHash      String?
+  name              String?
+  role              UserRole   @default(VISITOR)
+  stripeCustomerId  String?
+  businesses        Business[] @relation("ClaimedBusinesses")
+  posts             BlogPost[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([role])
+}
