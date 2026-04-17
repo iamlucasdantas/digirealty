@@ -1,0 +1,34 @@
+# Codespaces + VS Code dev container stack.
+# `app` shares `db`'s network namespace, so Postgres is reachable at
+# localhost:5432 from inside the workspace — same URL whether you're in
+# Codespaces, a local devcontainer, or bare metal.
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    depends_on:
+      - db
+    network_mode: service:db
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/aestheticsleads?schema=public"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/aestheticsleads?schema=public"
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: aestheticsleads
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pg-data:

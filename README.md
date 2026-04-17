@@ -11,6 +11,18 @@ to scale nationally.
 
 ## 🚀 Quick start
 
+### Fastest — GitHub Codespaces (no local install)
+
+1. Open the repo on GitHub.
+2. Click the green **Code** button → **Codespaces** tab → **Create codespace on this branch**.
+3. Wait ~2 min for the environment to bootstrap (installs deps, starts Postgres, pushes schema, seeds demo data).
+4. In the terminal: `pnpm dev`
+5. VS Code will pop up a "Open in browser" button for port 3000 — click it.
+
+Admin login: `admin@aestheticsleads.com` / `admin123` (change it in `.env` before going public).
+
+### Local
+
 ```bash
 # 1. Install
 pnpm install          # or: npm install / yarn
