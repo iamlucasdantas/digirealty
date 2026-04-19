@@ -27,7 +27,13 @@ fi
 
 if [ ! -d node_modules ] || [ ! -x node_modules/.bin/next ]; then
   echo "▶ node_modules missing — running pnpm install…"
-  pnpm install
+  pnpm install --no-frozen-lockfile
+fi
+
+# Ensure @prisma/client got generated (pnpm sometimes blocks postinstall).
+if [ ! -d node_modules/.prisma/client ]; then
+  echo "▶ Generating Prisma client…"
+  pnpm prisma generate
 fi
 
 # 3. Ensure the DB has the schema + seed. Idempotent: `db push` only applies

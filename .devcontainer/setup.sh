@@ -37,11 +37,12 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-# 4. Install deps
+# 4. Install deps (the `postinstall` script will run `prisma generate`)
 echo "▶ Installing dependencies…"
-pnpm install --frozen-lockfile=false
+pnpm install --no-frozen-lockfile
 
-# 5. Push schema and seed
+# 5. Belt-and-suspenders: regenerate Prisma client in case pnpm blocked the
+#    postinstall hook. Then push schema.
 echo "▶ Applying Prisma schema…"
 pnpm prisma generate
 pnpm prisma db push --skip-generate --accept-data-loss
