@@ -120,9 +120,12 @@ export default async function HomePage() {
                   <p className="mt-2 text-sm text-ink/85 line-clamp-3">{p.excerpt}</p>
                 )}
                 <p className="mt-4 text-xs text-ink-muted">
-                  {p.author && `By ${p.author.name}`}
-                  {p.medicalReviewer &&
-                    ` · Reviewed by ${p.medicalReviewer.name}, ${p.medicalReviewer.credentialSuffix}`}
+                  {p.author && !p.author.isPlaceholder
+                    ? `By ${p.author.name}`
+                    : "By The Atlas editorial team"}
+                  {p.medicalReviewer && !p.medicalReviewer.isPlaceholder
+                    ? ` · Reviewed by ${p.medicalReviewer.name}, ${p.medicalReviewer.credentialSuffix}`
+                    : " · Clinical review pending"}
                 </p>
               </article>
             ))}

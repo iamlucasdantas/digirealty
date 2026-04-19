@@ -70,6 +70,13 @@ export function websiteJsonLd() {
   };
 }
 
+/**
+ * Fake-looking phone prefixes we refuse to emit in structured data.
+ * The 555-01xx range is reserved for fiction — publishing it in schema
+ * would send Google a clear "this is a fake listing" signal.
+ */
+const PHONE_FICTION = /(?:^|\D)(?:\(?555\)?[-.\s]?0\d{2}|555[-.\s]?01\d{2})(?!\d)/;
+
 export function localBusinessJsonLd(b: {
   name: string;
   slug: string;
@@ -83,9 +90,21 @@ export function localBusinessJsonLd(b: {
   longitude?: number | null;
   ratingAvg?: number | null;
   ratingCount?: number;
+  ratingSource?: string | null;
+  ratingSyncedAt?: Date | string | null;
   descShort?: string | null;
   imageUrl?: string | null;
 }) {
+  const safePhone = b.phone && !PHONE_FICTION.test(b.phone) ? b.phone : undefined;
+
+  // Only emit AggregateRating with a traceable source. Otherwise we'd be
+  // surfacing a rating as fact without lastro.
+  const hasVerifiedRating =
+    b.ratingAvg != null &&
+    (b.ratingCount ?? 0) > 0 &&
+    !!b.ratingSource &&
+    !!b.ratingSyncedAt;
+
   return {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
@@ -93,7 +112,7 @@ export function localBusinessJsonLd(b: {
     name: b.name,
     description: b.descShort ?? undefined,
     url: absoluteUrl(`/business/${b.slug}`),
-    telephone: b.phone ?? undefined,
+    telephone: safePhone,
     image: b.imageUrl ?? undefined,
     address: {
       "@type": "PostalAddress",
@@ -107,14 +126,13 @@ export function localBusinessJsonLd(b: {
       b.latitude && b.longitude
         ? { "@type": "GeoCoordinates", latitude: b.latitude, longitude: b.longitude }
         : undefined,
-    aggregateRating:
-      b.ratingAvg && b.ratingCount
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: b.ratingAvg.toFixed(1),
-            reviewCount: b.ratingCount,
-          }
-        : undefined,
+    aggregateRating: hasVerifiedRating
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: (b.ratingAvg as number).toFixed(1),
+          reviewCount: b.ratingCount,
+        }
+      : undefined,
   };
 }
 
@@ -149,6 +167,7 @@ interface AuthorInput {
   title?: string;
   photoUrl?: string | null;
   url?: string;
+  isPlaceholder?: boolean;
 }
 
 interface ReviewerInput {
@@ -158,9 +177,15 @@ interface ReviewerInput {
   title?: string;
   photoUrl?: string | null;
   licenseState?: string | null;
+  isPlaceholder?: boolean;
 }
 
 export function personJsonLd(p: AuthorInput & { bio?: string; credentials?: string[] }) {
+  if (p.isPlaceholder) {
+    // Don't publish Person schema for placeholder personas — that's exactly
+    // the kind of fake E-E-A-T signal Google penalizes.
+    return null;
+  }
   return {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -187,29 +212,35 @@ export function articleJsonLd(a: {
   isMedical?: boolean;
 }) {
   const type = a.isMedical ? "MedicalWebPage" : "Article";
-  const authorNode = a.author
-    ? {
-        "@type": "Person",
-        "@id": absoluteUrl(`/team/${a.author.slug}`),
-        name: a.author.name,
-        url: absoluteUrl(`/team/${a.author.slug}`),
-        jobTitle: a.author.title,
-        image: a.author.photoUrl ?? undefined,
-      }
-    : { "@type": "Organization", name: siteConfig.name };
 
-  const reviewerNode = a.reviewer
+  // Placeholder personas never enter schema — the organization is the
+  // author of record, and we do not claim clinical review.
+  const realAuthor = a.author && !a.author.isPlaceholder ? a.author : undefined;
+  const realReviewer = a.reviewer && !a.reviewer.isPlaceholder ? a.reviewer : undefined;
+
+  const authorNode = realAuthor
     ? {
         "@type": "Person",
-        "@id": absoluteUrl(`/medical-review-board#${a.reviewer.slug}`),
-        name: `${a.reviewer.name}, ${a.reviewer.credentialSuffix}`,
-        jobTitle: a.reviewer.title,
-        image: a.reviewer.photoUrl ?? undefined,
+        "@id": absoluteUrl(`/team/${realAuthor.slug}`),
+        name: realAuthor.name,
+        url: absoluteUrl(`/team/${realAuthor.slug}`),
+        jobTitle: realAuthor.title,
+        image: realAuthor.photoUrl ?? undefined,
+      }
+    : { "@type": "Organization", "@id": absoluteUrl("/"), name: siteConfig.name };
+
+  const reviewerNode = realReviewer
+    ? {
+        "@type": "Person",
+        "@id": absoluteUrl(`/medical-review-board#${realReviewer.slug}`),
+        name: `${realReviewer.name}, ${realReviewer.credentialSuffix}`,
+        jobTitle: realReviewer.title,
+        image: realReviewer.photoUrl ?? undefined,
         hasOccupation: {
           "@type": "Occupation",
-          name: a.reviewer.title ?? a.reviewer.credentialSuffix,
-          occupationLocation: a.reviewer.licenseState
-            ? { "@type": "AdministrativeArea", name: a.reviewer.licenseState }
+          name: realReviewer.title ?? realReviewer.credentialSuffix,
+          occupationLocation: realReviewer.licenseState
+            ? { "@type": "AdministrativeArea", name: realReviewer.licenseState }
             : undefined,
         },
       }

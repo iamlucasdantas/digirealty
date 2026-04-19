@@ -33,7 +33,9 @@ export default async function AuthorPage({ params }: { params: { slug: string } 
       },
     },
   });
-  if (!author) notFound();
+  // Placeholder personas do not get public pages — shipping them would be a
+  // fake E-E-A-T signal.
+  if (!author || author.isPlaceholder) notFound();
 
   return (
     <article className="container py-14 max-w-3xl">

@@ -133,6 +133,11 @@ model Business {
   beforeAfter  Json?             // [{beforeUrl, afterUrl, service}]
   ratingAvg    Float?            @default(0)
   ratingCount  Int               @default(0)
+  // A rating is only surfaced in UI + JSON-LD when we have a source +
+  // sync date. Claims like "4.9 ★ 142 reviews" without lastro are a
+  // credibility liability — and a JSON-LD that claims them is worse.
+  ratingSource String?           // "google_places", "yelp", "firsthand"
+  ratingSyncedAt DateTime?
   // When we seed from Google Places, rows start as unclaimed and surface
   // a "Are you the owner? Claim this free" CTA. Claims move the row under
   // a BUSINESS_OWNER user account.
@@ -396,6 +401,11 @@ model MedicalReviewer {
   photoUrl         String?
   licenseState     String?      // "IL"
   licenseNumberHash String?     // hashed — do not store raw numbers in plaintext
+  // Public link where a reader can verify the clinician's license on a
+  // state board site. If null, we treat the reviewer as unverified and
+  // suppress their attribution in JSON-LD.
+  licenseVerifyUrl String?
+  verifiedAt       DateTime?    // when we last confirmed the license
   yearsExperience  Int?
   affiliations     String[]     @default([]) // ["AADA", "SDPA"]
   expertise        String[]     @default([])

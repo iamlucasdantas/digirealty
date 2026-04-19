@@ -38,16 +38,20 @@ export function BusinessCard({ business: b, rank, ctaServiceSlug }: Props) {
       {b.descShort && <p className="mt-3 text-sm text-ink/80 line-clamp-2">{b.descShort}</p>}
 
       <div className="mt-4 flex items-center gap-4 text-sm">
-        {b.ratingCount > 0 && (
-          <span className="flex items-center gap-1" aria-label="rating">
+        {b.ratingCount > 0 && b.ratingSource && b.ratingSyncedAt && (
+          <span
+            className="flex items-center gap-1"
+            title={`Aggregated from ${b.ratingSource} · synced ${b.ratingSyncedAt.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`}
+            aria-label="rating"
+          >
             <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden />
             <b className="font-semibold">{(b.ratingAvg ?? 0).toFixed(1)}</b>
             <span className="text-ink-muted">({b.ratingCount})</span>
           </span>
         )}
-        {b.claimedById && (
+        {b.claimedById && !b.unclaimed && (
           <span className="flex items-center gap-1 text-emerald-700 text-xs">
-            <BadgeCheck className="h-4 w-4" aria-hidden /> Verified
+            <BadgeCheck className="h-4 w-4" aria-hidden /> Verified listing
           </span>
         )}
       </div>
@@ -72,9 +76,12 @@ export function BusinessCard({ business: b, rank, ctaServiceSlug }: Props) {
 
 function TierBadge({ tier }: { tier: ListingTier }) {
   return (
-    <span className="absolute -top-2 left-4 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+    <span
+      className="absolute -top-2 left-4 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white shadow"
+      title="Sponsored listing — this provider pays for placement."
+    >
       <Sparkles className="h-3 w-3" aria-hidden />
-      {tier === "PREMIUM" ? "Premium partner" : "Featured"}
+      {tier === "PREMIUM" ? "Premium partner · Sponsored" : "Featured · Sponsored"}
     </span>
   );
 }

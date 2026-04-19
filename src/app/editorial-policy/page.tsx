@@ -57,7 +57,7 @@ export default function EditorialPolicyPage() {
         no relationship with the providers listed on the site.
       </p>
 
-      <h2>How we rank providers</h2>
+      <h2 id="how-we-rank">How we rank providers</h2>
       <p>
         For any &ldquo;best [treatment] in [city]&rdquo; list, providers are ranked by a weighted
         combination of:

@@ -54,6 +54,8 @@ export default async function BusinessProfilePage({ params }: { params: { slug: 
             longitude: b.longitude,
             ratingAvg: b.ratingAvg,
             ratingCount: b.ratingCount,
+            ratingSource: b.ratingSource,
+            ratingSyncedAt: b.ratingSyncedAt,
             descShort: b.descShort,
             imageUrl: b.heroImageUrl,
           }),
@@ -71,22 +73,29 @@ export default async function BusinessProfilePage({ params }: { params: { slug: 
             </p>
             <h1 className="mt-1 font-display text-4xl md:text-5xl font-semibold">{b.name}</h1>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-ink-muted">
-              {b.ratingCount > 0 && (
+              {b.ratingCount > 0 && b.ratingSource && b.ratingSyncedAt && (
                 <span className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />{" "}
                   <b className="text-ink">{(b.ratingAvg ?? 0).toFixed(1)}</b>
-                  <span>· {b.ratingCount} reviews</span>
+                  <span>
+                    · {b.ratingCount} reviews · {b.ratingSource} · synced{" "}
+                    {b.ratingSyncedAt.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                  </span>
                 </span>
               )}
-              {b.claimedById && (
+              {b.claimedById && !b.unclaimed && (
                 <span className="flex items-center gap-1 text-emerald-700">
                   <BadgeCheck className="h-4 w-4" /> Verified listing
                 </span>
               )}
               {(b.tier === "FEATURED" || b.tier === "PREMIUM") && (
-                <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-800 text-xs font-semibold">
-                  {b.tier === "PREMIUM" ? "Premium partner" : "Featured"}
-                </span>
+                <Link
+                  href="/editorial-policy#how-we-rank"
+                  className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-amber-900 text-xs font-semibold hover:bg-amber-200"
+                  title="This is a sponsored listing. Learn how we rank providers."
+                >
+                  {b.tier === "PREMIUM" ? "Premium partner · Sponsored" : "Featured partner · Sponsored"}
+                </Link>
               )}
             </div>
             {b.descShort && <p className="mt-5 text-lg text-ink/85 max-w-2xl">{b.descShort}</p>}

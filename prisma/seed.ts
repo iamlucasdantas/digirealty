@@ -112,16 +112,20 @@ async function main() {
     const fillers = await prisma.service.findUnique({ where: { slug: "dermal-fillers" } });
     const laser = await prisma.service.findUnique({ where: { slug: "laser-hair-removal" } });
 
+    // Demo businesses: neutral names, no fictional ratings, no fake
+    // phone numbers, no unverifiable credential claims. These rows exist
+    // so the UI has something to render in dev — they're explicitly
+    // marked as demo (`importedFrom='demo_seed'`) and do NOT carry a
+    // rating (we never fake social proof).
     const businesses = [
       {
         slug: "river-bend-aesthetics",
         name: "River Bend Aesthetics",
         cityId: davenport.id,
         tier: "FEATURED" as ListingTier,
-        descShort: "Board-certified injectors specializing in natural-looking Botox & filler results in downtown Davenport.",
-        ratingAvg: 4.9,
-        ratingCount: 142,
-        phone: "(563) 555-0142",
+        descShort:
+          "Demo listing. Real providers will replace this after onboarding.",
+        importedFrom: "demo_seed",
         address1: "415 E 2nd St",
         zip: "52801",
         services: [botox, fillers].filter(Boolean),
@@ -131,10 +135,9 @@ async function main() {
         name: "Bettendorf Skin Co.",
         cityId: bettendorf.id,
         tier: "VERIFIED" as ListingTier,
-        descShort: "Modern med spa focused on medical-grade facials, laser, and Botox.",
-        ratingAvg: 4.8,
-        ratingCount: 98,
-        phone: "(563) 555-0198",
+        descShort:
+          "Demo listing. Real providers will replace this after onboarding.",
+        importedFrom: "demo_seed",
         services: [botox, laser].filter(Boolean),
       },
       {
@@ -142,11 +145,10 @@ async function main() {
         name: "Mississippi MedSpa",
         cityId: davenport.id,
         tier: "FREE" as ListingTier,
-        descShort: "Full-service med spa with injectables, skincare, and body contouring.",
-        ratingAvg: 4.6,
-        ratingCount: 61,
+        descShort:
+          "Demo listing. Real providers will replace this after onboarding.",
         unclaimed: true,
-        importedFrom: "manual_seed",
+        importedFrom: "demo_seed",
         services: [botox, fillers, laser].filter(Boolean),
       },
     ];

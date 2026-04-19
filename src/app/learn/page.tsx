@@ -94,12 +94,14 @@ export default async function LearnIndex() {
                   {p.title}
                 </Link>
                 {p.excerpt && <p className="mt-1 text-sm text-ink-muted">{p.excerpt}</p>}
-                {p.author && (
-                  <p className="mt-1 text-xs text-ink-muted">
-                    By {p.author.name}
-                    {p.medicalReviewer && ` · Reviewed by ${p.medicalReviewer.name}, ${p.medicalReviewer.credentialSuffix}`}
-                  </p>
-                )}
+                <p className="mt-1 text-xs text-ink-muted">
+                  {p.author && !p.author.isPlaceholder
+                    ? `By ${p.author.name}`
+                    : "By The Atlas editorial team"}
+                  {p.medicalReviewer && !p.medicalReviewer.isPlaceholder
+                    ? ` · Reviewed by ${p.medicalReviewer.name}, ${p.medicalReviewer.credentialSuffix}`
+                    : " · Clinical review pending"}
+                </p>
               </li>
             ))}
           </ul>

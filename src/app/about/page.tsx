@@ -16,9 +16,16 @@ export const revalidate = 3600;
 
 export default async function AboutPage() {
   const [authors, reviewers] = await Promise.all([
-    prisma.author.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.medicalReviewer.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.author.findMany({
+      where: { isPlaceholder: false },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.medicalReviewer.findMany({
+      where: { isPlaceholder: false },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
+  const teamIsEmpty = authors.length === 0 && reviewers.length === 0;
 
   return (
     <EditorialPage
@@ -64,41 +71,61 @@ export default async function AboutPage() {
       </ul>
 
       <h2>The team</h2>
-      <p>
-        We&apos;re a small editorial team based across the Midwest, with a growing network of
-        medical reviewers around the country. Meet us:
-      </p>
-
-      <div className="not-prose mt-6 grid gap-4 md:grid-cols-2">
-        {authors.map((a) => (
-          <Link
-            key={a.id}
-            href={`/team/${a.slug}`}
-            className="rounded-2xl border border-ink/10 bg-white p-5 hover:border-brand-200"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Editorial</p>
-            <p className="mt-1 font-display text-xl font-semibold">{a.name}</p>
-            <p className="text-sm text-ink-muted">{a.title}</p>
-            <p className="mt-3 text-sm line-clamp-3">{a.bio}</p>
-          </Link>
-        ))}
-        {reviewers.map((r) => (
-          <Link
-            key={r.id}
-            href={`/medical-review-board#${r.slug}`}
-            className="rounded-2xl border border-ink/10 bg-white p-5 hover:border-brand-200"
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              Medical review
-            </p>
-            <p className="mt-1 font-display text-xl font-semibold">
-              {r.name}, {r.credentialSuffix}
-            </p>
-            <p className="text-sm text-ink-muted">{r.title}</p>
-            <p className="mt-3 text-sm line-clamp-3">{r.bio}</p>
-          </Link>
-        ))}
-      </div>
+      {teamIsEmpty ? (
+        <>
+          <p>
+            We&apos;re a brand-new operation and are deliberately being slow about who
+            represents The Atlas in print. Rather than fill this page with stock
+            photos or placeholder names, we&apos;d rather leave it honest: our founding
+            editor and medical reviewer are still being signed.
+          </p>
+          <p>
+            If you&apos;re a beauty/health journalist, or a licensed RN, NP, PA-C or
+            physician with aesthetics experience who wants to help build a
+            reader-first publication from day one, email{" "}
+            <a href="mailto:hello@theaestheticsatlas.com">hello@theaestheticsatlas.com</a>.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            We&apos;re a small editorial team based across the Midwest, with a growing
+            network of medical reviewers around the country. Meet us:
+          </p>
+          <div className="not-prose mt-6 grid gap-4 md:grid-cols-2">
+            {authors.map((a) => (
+              <Link
+                key={a.id}
+                href={`/team/${a.slug}`}
+                className="rounded-2xl border border-ink/10 bg-white p-5 hover:border-brand-200"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                  Editorial
+                </p>
+                <p className="mt-1 font-display text-xl font-semibold">{a.name}</p>
+                <p className="text-sm text-ink-muted">{a.title}</p>
+                <p className="mt-3 text-sm line-clamp-3">{a.bio}</p>
+              </Link>
+            ))}
+            {reviewers.map((r) => (
+              <Link
+                key={r.id}
+                href={`/medical-review-board#${r.slug}`}
+                className="rounded-2xl border border-ink/10 bg-white p-5 hover:border-brand-200"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                  Medical review
+                </p>
+                <p className="mt-1 font-display text-xl font-semibold">
+                  {r.name}, {r.credentialSuffix}
+                </p>
+                <p className="text-sm text-ink-muted">{r.title}</p>
+                <p className="mt-3 text-sm line-clamp-3">{r.bio}</p>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       <h2>How to reach us</h2>
       <p>

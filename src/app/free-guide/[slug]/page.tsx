@@ -41,20 +41,27 @@ export default async function LeadMagnetPage({ params }: { params: { slug: strin
           <p className="mt-3 text-xl text-ink-muted">{magnet.subtitle}</p>
         )}
 
-        {magnet.reviewedBy && (
-          <MedicallyReviewed
-            author={{ slug: "morgan-ellis", name: "Morgan Ellis", title: "Editor-in-Chief" }}
-            reviewer={{
-              slug: magnet.reviewedBy.slug,
-              name: magnet.reviewedBy.name,
-              credentialSuffix: magnet.reviewedBy.credentialSuffix,
-              title: magnet.reviewedBy.title,
-              photoUrl: magnet.reviewedBy.photoUrl,
-              isPlaceholder: magnet.reviewedBy.isPlaceholder,
-            }}
-            reviewedAt={magnet.updatedAt}
-          />
-        )}
+        <MedicallyReviewed
+          author={{
+            slug: "the-atlas",
+            name: "The Atlas editorial team",
+            title: "Editorial",
+            isPlaceholder: true,
+          }}
+          reviewer={
+            magnet.reviewedBy
+              ? {
+                  slug: magnet.reviewedBy.slug,
+                  name: magnet.reviewedBy.name,
+                  credentialSuffix: magnet.reviewedBy.credentialSuffix,
+                  title: magnet.reviewedBy.title,
+                  photoUrl: magnet.reviewedBy.photoUrl,
+                  isPlaceholder: magnet.reviewedBy.isPlaceholder,
+                }
+              : null
+          }
+          reviewedAt={magnet.updatedAt}
+        />
 
         <div className="prose-al mt-8 max-w-none">
           {magnet.description.split("\n\n").map((p, i) => (

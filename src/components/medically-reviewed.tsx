@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Shield, ShieldCheck, Stethoscope } from "lucide-react";
+import { Shield, ShieldCheck, Stethoscope, AlertCircle } from "lucide-react";
 
 interface ReviewerSummary {
   slug: string;
@@ -16,6 +16,7 @@ interface AuthorSummary {
   name: string;
   title: string;
   photoUrl?: string | null;
+  isPlaceholder?: boolean;
 }
 
 interface Props {
@@ -27,12 +28,13 @@ interface Props {
 }
 
 /**
- * E-E-A-T trust strip for YMYL content. Shows author + medical reviewer +
- * last reviewed date at the top of every guide or comparison article.
+ * E-E-A-T trust strip for YMYL content.
  *
- * This is the single most important piece of visible editorial infrastructure
- * — Google's Medic update specifically looks for human review signals on
- * medical/wellness pages.
+ * Principle (spec §C.2): "Nenhuma persona médica placeholder pode aparecer
+ * em produção." So — if the reviewer is a placeholder (no real clinician
+ * contracted yet), we suppress the reviewer attribution and surface an
+ * honest "Pending clinical review" state. Same for placeholder authors:
+ * we fall back to organization byline ("The Atlas editorial team").
  */
 export function MedicallyReviewed({
   author,
@@ -44,33 +46,52 @@ export function MedicallyReviewed({
   const reviewed = toDate(reviewedAt);
   const updated = toDate(updatedAt);
 
+  const hasRealAuthor = !author.isPlaceholder;
+  const hasRealReviewer = reviewer && !reviewer.isPlaceholder;
+
+  // If both are placeholders, we still have to be transparent about the
+  // editorial state of this piece. Don't pretend.
+  if (!hasRealAuthor && !hasRealReviewer) {
+    return <PendingReviewBlock />;
+  }
+
   return (
     <aside className="my-6 rounded-2xl border border-ink/10 bg-slate-50/60 p-4 md:p-5">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        {/* Author */}
-        <Link
-          href={`/team/${author.slug}`}
-          className="flex items-center gap-3 group"
-          itemProp="author"
-          itemScope
-          itemType="https://schema.org/Person"
-        >
-          <Avatar src={author.photoUrl} alt={author.name} />
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
-              Written by
-            </p>
-            <p className="font-semibold group-hover:text-brand-700" itemProp="name">
-              {author.name}
-            </p>
-            <p className="text-xs text-ink-muted" itemProp="jobTitle">
-              {author.title}
-            </p>
+        {hasRealAuthor ? (
+          <Link
+            href={`/team/${author.slug}`}
+            className="flex items-center gap-3 group"
+            itemProp="author"
+            itemScope
+            itemType="https://schema.org/Person"
+          >
+            <Avatar src={author.photoUrl} alt={author.name} />
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                Written by
+              </p>
+              <p className="font-semibold group-hover:text-brand-700" itemProp="name">
+                {author.name}
+              </p>
+              <p className="text-xs text-ink-muted" itemProp="jobTitle">
+                {author.title}
+              </p>
+            </div>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-slate-200" aria-hidden />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                Written by
+              </p>
+              <p className="font-semibold">The Atlas editorial team</p>
+            </div>
           </div>
-        </Link>
+        )}
 
-        {/* Medical reviewer */}
-        {reviewer && (
+        {hasRealReviewer && reviewer ? (
           <Link
             href={`/medical-review-board#${reviewer.slug}`}
             className="flex items-center gap-3 group"
@@ -86,11 +107,28 @@ export function MedicallyReviewed({
               <p className="text-xs text-ink-muted">{reviewer.title}</p>
             </div>
           </Link>
+        ) : (
+          <div className="flex items-center gap-3 text-ink-muted">
+            <div className="h-10 w-10 rounded-full bg-amber-100 grid place-items-center" aria-hidden>
+              <Stethoscope className="h-4 w-4 text-amber-700" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                Clinical review pending
+              </p>
+              <p className="text-sm">
+                We&apos;re recruiting a licensed reviewer —{" "}
+                <Link href="/medical-review-board" className="underline hover:text-ink">
+                  learn more
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
         )}
 
-        {/* Dates */}
         <dl className="ml-auto text-xs text-ink-muted space-y-0.5">
-          {reviewed && (
+          {reviewed && hasRealReviewer && (
             <div className="flex gap-1.5">
               <dt>Last medically reviewed</dt>
               <dd className="font-medium text-ink">{fmt(reviewed)}</dd>
@@ -110,29 +148,65 @@ export function MedicallyReviewed({
           )}
         </dl>
       </div>
-
-      {reviewer?.isPlaceholder && (
-        <p className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
-          <Shield className="h-3.5 w-3.5" aria-hidden />
-          Placeholder reviewer persona — will be replaced by a licensed clinician before
-          public launch.
-        </p>
-      )}
     </aside>
   );
 }
 
-/** Compact byline for non-YMYL pages (e.g. city hubs). */
-export function ByLine({ author, updatedAt }: { author: AuthorSummary; updatedAt?: Date | string | null }) {
+/** Compact byline for non-YMYL pages. Suppresses placeholder authors. */
+export function ByLine({
+  author,
+  updatedAt,
+}: {
+  author: AuthorSummary;
+  updatedAt?: Date | string | null;
+}) {
   const updated = toDate(updatedAt);
+  if (author.isPlaceholder) {
+    return (
+      <p className="mt-3 text-sm text-ink-muted">
+        By The Atlas editorial team
+        {updated && <span> · updated {fmt(updated)}</span>}
+      </p>
+    );
+  }
   return (
     <div className="mt-3 flex items-center gap-3 text-sm text-ink-muted">
       <Avatar src={author.photoUrl} alt={author.name} size={32} />
       <span>
-        By <Link href={`/team/${author.slug}`} className="font-semibold text-ink hover:underline">{author.name}</Link>
+        By{" "}
+        <Link href={`/team/${author.slug}`} className="font-semibold text-ink hover:underline">
+          {author.name}
+        </Link>
         {updated && <span> · updated {fmt(updated)}</span>}
       </span>
     </div>
+  );
+}
+
+/**
+ * Transparent notice when we don't yet have a named, real author OR a named,
+ * real reviewer for this piece. We'd rather show this than fake trust.
+ */
+export function PendingReviewBlock() {
+  return (
+    <aside className="my-6 flex flex-wrap items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 md:p-5">
+      <AlertCircle className="h-5 w-5 shrink-0 text-amber-700 mt-0.5" aria-hidden />
+      <div className="text-sm">
+        <p className="font-semibold text-amber-900">
+          Editorial draft — clinical review pending
+        </p>
+        <p className="mt-1 text-amber-900/85">
+          We&apos;re actively recruiting a licensed clinician to review this article
+          before it becomes part of our permanent library. We&apos;re showing this draft
+          so you can read it — but we&apos;ll note clearly on the page once it has been
+          clinically reviewed and dated.{" "}
+          <Link href="/medical-review-board" className="underline hover:text-amber-950">
+            How we review
+          </Link>
+          .
+        </p>
+      </div>
+    </aside>
   );
 }
 
