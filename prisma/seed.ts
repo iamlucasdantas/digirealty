@@ -220,6 +220,65 @@ async function main() {
     },
   });
 
+  // ─── Lead magnet + starter blog post ──────────────────────
+  const jamie = await prisma.medicalReviewer.findUnique({
+    where: { slug: "jamie-chen-pa-c" },
+  });
+  const morgan = await prisma.author.findUnique({ where: { slug: "morgan-ellis" } });
+
+  if (jamie) {
+    await prisma.leadMagnet.upsert({
+      where: { slug: "12-questions-before-your-first-botox" },
+      update: {},
+      create: {
+        slug: "12-questions-before-your-first-botox",
+        title: "The 12 questions to ask before your first Botox appointment",
+        subtitle:
+          "A printable, clinician-reviewed checklist. Take it with you to the consult — and leave knowing what you'll pay, who's injecting, and whether it's right for you.",
+        description: `Consults are supposed to be a conversation, not a sales pitch. But most first-timers walk in without the right questions, and walk out with a treatment plan before they've thought it through.
+
+This 12-question checklist was put together by our editorial team and reviewed by a licensed dermatology PA. It covers provider credentials, what "units" actually means (and why "per area" pricing often costs more), what to expect on day one vs week two, what the real risks look like, and the consult red flags that should stop you from booking.
+
+Print it, screenshot it, or bring it on your phone. No spam — just the guide and one email a week with honest, expert-reviewed aesthetics content.`,
+        pageCount: 6,
+        downloadUrl: "/lead-magnets/12-questions-before-botox.pdf",
+        reviewedById: jamie.id,
+        published: true,
+      },
+    });
+  }
+
+  if (morgan && jamie) {
+    await prisma.blogPost.upsert({
+      where: { slug: "botox-complete-guide" },
+      update: {},
+      create: {
+        slug: "botox-complete-guide",
+        title: "Botox: the complete guide (2026)",
+        excerpt:
+          "What Botox actually does, what it costs in 2026, who it's for, and how to find an injector worth the money.",
+        body: `<h2>What Botox does — and doesn't</h2>
+<p>Botox is a purified form of botulinum toxin A that temporarily relaxes the specific facial muscles you activate when you frown, squint, or raise your brows. Relaxed muscle = less creased skin = softer lines. It does not fill anything, it does not resurface skin, and it does not work on lines you have at rest (those usually need filler or resurfacing).</p>
+<h2>What it costs</h2>
+<p>In the US in 2026, Botox is typically priced per unit or per treatment area. Per-unit pricing ($10–18/unit) is usually the more honest way to buy it; per-area pricing feels simpler but can hide a higher effective rate.</p>
+<h2>Who's a good candidate</h2>
+<p>Adults with dynamic lines (lines that appear or deepen when you animate) are the best candidates. Pregnant and breastfeeding patients, people with neuromuscular conditions like myasthenia gravis, and anyone with an active infection at the injection site should not get Botox.</p>
+<h2>How to choose a provider</h2>
+<p>Ask about credentials (RN, NP, PA-C, MD), how many injections they do per week, what neuromodulator products they carry (Botox, Dysport, Daxxify, Xeomin each behave differently), and whether the injector — not just the medical director — is on-site for your appointment.</p>
+<p><em>This guide is an early draft — full pillar version lands during our content sprint. In the meantime, the checklist linked at the top of this page will make you a sharper first-time patient.</em></p>`,
+        coverImage: null,
+        authorId: morgan.id,
+        medicalReviewerId: jamie.id,
+        reviewedAt: new Date(),
+        tags: ["botox", "injectables", "pillar"],
+        isPillar: true,
+        readingMinutes: 9,
+        published: true,
+        publishedAt: new Date(),
+      },
+    });
+  }
+
   // A sample comparison
   const botox = await prisma.service.findUnique({ where: { slug: "botox" } });
   const fillers = await prisma.service.findUnique({ where: { slug: "dermal-fillers" } });

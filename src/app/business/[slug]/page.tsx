@@ -5,6 +5,7 @@ import { Star, Phone, Globe, MapPin, BadgeCheck, Clock } from "lucide-react";
 import { LeadForm } from "@/components/lead-form";
 import { JsonLd } from "@/components/json-ld";
 import { AdSlot } from "@/components/ad-slot";
+import { ClaimBanner } from "@/components/claim-banner";
 import { buildMetadata, breadcrumbsJsonLd, localBusinessJsonLd } from "@/lib/seo";
 import { formatPriceRange } from "@/lib/utils";
 import { getBusinessBySlug } from "@/lib/repos/businesses";
@@ -36,6 +37,7 @@ export default async function BusinessProfilePage({ params }: { params: { slug: 
 
   return (
     <>
+      {b.unclaimed && <ClaimBanner businessSlug={b.slug} />}
       <JsonLd
         data={[
           breadcrumbsJsonLd(breadcrumbs),

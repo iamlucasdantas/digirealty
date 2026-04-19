@@ -2,13 +2,14 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { BusinessCard } from "@/components/business-card";
 import { AdSlot } from "@/components/ad-slot";
+import { NewsletterSignup } from "@/components/newsletter-signup";
 import { siteConfig } from "@/lib/config";
-import { ArrowRight, CheckCircle2, ShieldCheck, Timer, BookOpen } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Timer, BookOpen, Download } from "lucide-react";
 
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [featuredBiz, topServices, cities] = await Promise.all([
+  const [featuredBiz, topServices, cities, thisWeek, leadMagnet] = await Promise.all([
     prisma.business.findMany({
       where: { status: "PUBLISHED", tier: { in: ["PREMIUM", "FEATURED"] } },
       include: { city: true },
@@ -24,6 +25,13 @@ export default async function HomePage() {
       include: { _count: { select: { businesses: true } } },
       take: 8,
     }),
+    prisma.blogPost.findMany({
+      where: { published: true },
+      include: { author: true, medicalReviewer: true },
+      orderBy: { publishedAt: "desc" },
+      take: 3,
+    }),
+    prisma.leadMagnet.findFirst({ where: { published: true } }),
   ]);
 
   return (
@@ -81,6 +89,70 @@ export default async function HomePage() {
               <AdSlot placement="HOMEPAGE_HERO" />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* This week on the blog */}
+      {thisWeek.length > 0 && (
+        <section className="container py-16">
+          <SectionHeader
+            eyebrow="This week on the Atlas"
+            title="Latest guides"
+            cta={{ href: "/learn", label: "All guides" }}
+          />
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {thisWeek.map((p) => (
+              <article
+                key={p.id}
+                className="rounded-2xl border border-ink/10 bg-white p-6 hover:border-brand-200"
+              >
+                {p.isPillar && (
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                    Pillar guide
+                  </p>
+                )}
+                <Link href={`/learn/${p.slug}`}>
+                  <h3 className="mt-1 font-display text-xl font-semibold hover:text-brand-700">
+                    {p.title}
+                  </h3>
+                </Link>
+                {p.excerpt && (
+                  <p className="mt-2 text-sm text-ink/85 line-clamp-3">{p.excerpt}</p>
+                )}
+                <p className="mt-4 text-xs text-ink-muted">
+                  {p.author && `By ${p.author.name}`}
+                  {p.medicalReviewer &&
+                    ` · Reviewed by ${p.medicalReviewer.name}, ${p.medicalReviewer.credentialSuffix}`}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Lead magnet + newsletter */}
+      <section className="container py-4">
+        <div className="grid gap-5 md:grid-cols-2">
+          {leadMagnet && (
+            <Link
+              href={`/free-guide/${leadMagnet.slug}`}
+              className="group rounded-2xl border border-brand-200 bg-gradient-to-br from-brand-50 to-white p-6 hover:border-brand-400"
+            >
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand-700">
+                <Download className="h-3.5 w-3.5" /> Free download
+              </p>
+              <h3 className="mt-2 font-display text-2xl font-semibold group-hover:text-brand-700">
+                {leadMagnet.title}
+              </h3>
+              {leadMagnet.subtitle && (
+                <p className="mt-2 text-sm text-ink/80">{leadMagnet.subtitle}</p>
+              )}
+              <p className="mt-4 text-sm font-semibold text-brand-700">
+                Get the guide →
+              </p>
+            </Link>
+          )}
+          <NewsletterSignup variant="card" />
         </div>
       </section>
 

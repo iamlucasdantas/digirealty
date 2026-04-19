@@ -145,6 +145,8 @@ model Business {
   reviews      Review[]
   leads        Lead[]
   adSlots      AdPlacement[]
+  claims       BusinessClaim[]
+  unlistToken  UnlistToken?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
@@ -385,22 +387,23 @@ model Author {
 }
 
 model MedicalReviewer {
-  id               String     @id @default(cuid())
-  slug             String     @unique
-  name             String     // "Jamie Chen"
-  credentialSuffix String     // "PA-C"  (RN, MD, DO, PA-C, NP, DNP)
-  title            String     // "Dermatology Physician Assistant"
-  bio              String     @db.Text
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  name             String       // "Jamie Chen"
+  credentialSuffix String       // "PA-C"  (RN, MD, DO, PA-C, NP, DNP)
+  title            String       // "Dermatology Physician Assistant"
+  bio              String       @db.Text
   photoUrl         String?
-  licenseState     String?    // "IL"
-  licenseNumberHash String?   // hashed — do not store raw numbers in plaintext
+  licenseState     String?      // "IL"
+  licenseNumberHash String?     // hashed — do not store raw numbers in plaintext
   yearsExperience  Int?
-  affiliations     String[]   @default([]) // ["AADA", "SDPA"]
-  expertise        String[]   @default([])
-  isPlaceholder    Boolean    @default(false)
+  affiliations     String[]     @default([]) // ["AADA", "SDPA"]
+  expertise        String[]     @default([])
+  isPlaceholder    Boolean      @default(false)
   posts            BlogPost[]
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  leadMagnets      LeadMagnet[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 }
 
 // ─── Monetization ─────────────────────────────────────────────
@@ -488,4 +491,89 @@ model User {
   updatedAt         DateTime   @updatedAt
 
   @@index([role])
+}
+
+// ─── Audience (email list, lead magnets, claims) ──────────────
+
+enum SubscriberSource {
+  NEWSLETTER
+  LEAD_MAGNET
+  LEAD_FORM
+  CLAIM_FLOW
+}
+
+model Subscriber {
+  id             String            @id @default(cuid())
+  email          String            @unique
+  firstName      String?
+  source         SubscriberSource  @default(NEWSLETTER)
+  sourceDetail   String?           // e.g. lead-magnet slug
+  tags           String[]          @default([])
+  confirmedAt    DateTime?         // double opt-in
+  unsubscribedAt DateTime?
+  externalId     String?           // Beehiiv / ConvertKit subscriber id
+  ipHash         String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  landingPath    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([source])
+  @@index([unsubscribedAt])
+}
+
+model LeadMagnet {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  subtitle    String?
+  description String    @db.Text
+  coverImage  String?
+  // Download path. For now a PDF in /public/lead-magnets, later S3-signed URL.
+  downloadUrl String
+  pageCount   Int?
+  reviewedById String?
+  reviewedBy  MedicalReviewer? @relation(fields: [reviewedById], references: [id])
+  published   Boolean   @default(true)
+  downloads   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum ClaimStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+model BusinessClaim {
+  id             String      @id @default(cuid())
+  businessId     String
+  business       Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  claimantName   String
+  claimantEmail  String
+  claimantRole   String      // "owner", "manager", "marketing"
+  claimantPhone  String?
+  verifyToken    String      @unique
+  verifyExpiresAt DateTime
+  status         ClaimStatus @default(PENDING)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  verifiedAt     DateTime?
+
+  @@index([businessId, status])
+  @@index([verifyToken])
+}
+
+model UnlistToken {
+  id         String    @id @default(cuid())
+  businessId String    @unique
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  token      String    @unique
+  email      String?
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
 }
