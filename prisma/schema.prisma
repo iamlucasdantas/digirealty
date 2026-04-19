@@ -133,6 +133,12 @@ model Business {
   beforeAfter  Json?             // [{beforeUrl, afterUrl, service}]
   ratingAvg    Float?            @default(0)
   ratingCount  Int               @default(0)
+  // When we seed from Google Places, rows start as unclaimed and surface
+  // a "Are you the owner? Claim this free" CTA. Claims move the row under
+  // a BUSINESS_OWNER user account.
+  unclaimed    Boolean           @default(false)
+  googlePlaceId String?          @unique
+  importedFrom String?           // "google_places" | "manual" | "yelp" | "csv"
   claimedById  String?
   claimedBy    User?             @relation("ClaimedBusinesses", fields: [claimedById], references: [id])
   services     BusinessService[]
@@ -331,22 +337,70 @@ model Comparison {
 }
 
 model BlogPost {
-  id          String    @id @default(cuid())
-  slug        String    @unique
-  title       String
-  excerpt     String?
-  body        String    @db.Text // MDX
-  coverImage  String?
-  authorId    String?
-  author      User?     @relation(fields: [authorId], references: [id])
-  tags        String[]  @default([])
-  aiGenerated Boolean   @default(false)
-  published   Boolean   @default(false)
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id               String            @id @default(cuid())
+  slug             String            @unique
+  title            String
+  excerpt          String?
+  body             String            @db.Text // MDX
+  coverImage       String?
+  authorId         String?
+  author           Author?           @relation(fields: [authorId], references: [id])
+  medicalReviewerId String?
+  medicalReviewer  MedicalReviewer?  @relation(fields: [medicalReviewerId], references: [id])
+  reviewedAt       DateTime?
+  tags             String[]          @default([])
+  aiGenerated      Boolean           @default(false)
+  published        Boolean           @default(false)
+  publishedAt      DateTime?
+  isPillar         Boolean           @default(false) // top-of-cluster pillar guide
+  readingMinutes   Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([published, publishedAt])
+  @@index([isPillar])
+}
+
+// ─── Editorial team ───────────────────────────────────────────
+// Separated from User: Authors/Reviewers are public-facing personas
+// that need bios, photos, and credentials surfaced in JSON-LD.
+
+model Author {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  name        String
+  title       String     // "Senior Beauty Editor"
+  bio         String     @db.Text
+  photoUrl    String?
+  email       String?
+  twitter     String?
+  instagram   String?
+  linkedin    String?
+  credentials String[]   @default([]) // ["MA Journalism, NYU"]
+  expertise   String[]   @default([]) // ["injectables", "laser"]
+  isPlaceholder Boolean  @default(false)
+  posts       BlogPost[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model MedicalReviewer {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  name             String     // "Jamie Chen"
+  credentialSuffix String     // "PA-C"  (RN, MD, DO, PA-C, NP, DNP)
+  title            String     // "Dermatology Physician Assistant"
+  bio              String     @db.Text
+  photoUrl         String?
+  licenseState     String?    // "IL"
+  licenseNumberHash String?   // hashed — do not store raw numbers in plaintext
+  yearsExperience  Int?
+  affiliations     String[]   @default([]) // ["AADA", "SDPA"]
+  expertise        String[]   @default([])
+  isPlaceholder    Boolean    @default(false)
+  posts            BlogPost[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 }
 
 // ─── Monetization ─────────────────────────────────────────────
@@ -430,7 +484,6 @@ model User {
   role              UserRole   @default(VISITOR)
   stripeCustomerId  String?
   businesses        Business[] @relation("ClaimedBusinesses")
-  posts             BlogPost[]
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 

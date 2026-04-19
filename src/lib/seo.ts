@@ -143,6 +143,37 @@ export function breadcrumbsJsonLd(items: Array<{ name: string; url: string }>) {
   };
 }
 
+interface AuthorInput {
+  name: string;
+  slug: string;
+  title?: string;
+  photoUrl?: string | null;
+  url?: string;
+}
+
+interface ReviewerInput {
+  name: string;
+  slug: string;
+  credentialSuffix: string;
+  title?: string;
+  photoUrl?: string | null;
+  licenseState?: string | null;
+}
+
+export function personJsonLd(p: AuthorInput & { bio?: string; credentials?: string[] }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": absoluteUrl(`/team/${p.slug}`),
+    name: p.name,
+    url: absoluteUrl(`/team/${p.slug}`),
+    image: p.photoUrl ?? undefined,
+    jobTitle: p.title,
+    description: p.bio,
+    hasCredential: p.credentials?.map((c) => ({ "@type": "EducationalOccupationalCredential", name: c })),
+  };
+}
+
 export function articleJsonLd(a: {
   title: string;
   description: string;
@@ -150,22 +181,61 @@ export function articleJsonLd(a: {
   image?: string;
   publishedTime?: string;
   modifiedTime?: string;
-  authorName?: string;
+  reviewedTime?: string;
+  author?: AuthorInput;
+  reviewer?: ReviewerInput;
+  isMedical?: boolean;
 }) {
+  const type = a.isMedical ? "MedicalWebPage" : "Article";
+  const authorNode = a.author
+    ? {
+        "@type": "Person",
+        "@id": absoluteUrl(`/team/${a.author.slug}`),
+        name: a.author.name,
+        url: absoluteUrl(`/team/${a.author.slug}`),
+        jobTitle: a.author.title,
+        image: a.author.photoUrl ?? undefined,
+      }
+    : { "@type": "Organization", name: siteConfig.name };
+
+  const reviewerNode = a.reviewer
+    ? {
+        "@type": "Person",
+        "@id": absoluteUrl(`/medical-review-board#${a.reviewer.slug}`),
+        name: `${a.reviewer.name}, ${a.reviewer.credentialSuffix}`,
+        jobTitle: a.reviewer.title,
+        image: a.reviewer.photoUrl ?? undefined,
+        hasOccupation: {
+          "@type": "Occupation",
+          name: a.reviewer.title ?? a.reviewer.credentialSuffix,
+          occupationLocation: a.reviewer.licenseState
+            ? { "@type": "AdministrativeArea", name: a.reviewer.licenseState }
+            : undefined,
+        },
+      }
+    : undefined;
+
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": type,
     headline: a.title,
     description: a.description,
     image: a.image ?? absoluteUrl("/og-default.png"),
     datePublished: a.publishedTime,
     dateModified: a.modifiedTime ?? a.publishedTime,
-    author: { "@type": "Person", name: a.authorName ?? siteConfig.name },
+    ...(reviewerNode
+      ? {
+          reviewedBy: reviewerNode,
+          lastReviewed: a.reviewedTime ?? a.modifiedTime,
+        }
+      : {}),
+    author: authorNode,
     publisher: {
       "@type": "Organization",
       name: siteConfig.name,
       logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
     },
     mainEntityOfPage: absoluteUrl(`/${a.slug}`),
+    isAccessibleForFree: true,
   };
 }

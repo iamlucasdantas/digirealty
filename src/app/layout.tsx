@@ -18,11 +18,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: { default: `${siteConfig.name} — ${siteConfig.tagline}`, template: `%s | ${siteConfig.name}` },
+  title: { default: `${siteConfig.shortName} — ${siteConfig.tagline}`, template: `%s | ${siteConfig.shortName}` },
   description: siteConfig.description,
   openGraph: {
     type: "website",
-    siteName: siteConfig.name,
+    siteName: siteConfig.shortName,
     locale: "en_US",
   },
   icons: { icon: "/favicon.ico" },

@@ -3,10 +3,10 @@ import { siteConfig } from "@/lib/config";
 import { Sparkles } from "lucide-react";
 
 const nav = [
-  { href: "/services", label: "Treatments" },
-  { href: "/cities", label: "Locations" },
+  { href: "/learn", label: "Guides" },
   { href: "/compare", label: "Compare" },
-  { href: "/learn", label: "Learn" },
+  { href: "/services", label: "Treatments" },
+  { href: "/cities", label: "Cities" },
   { href: "/for-providers", label: "For providers" },
 ];
 
@@ -16,7 +16,7 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-display text-xl font-semibold">
           <Sparkles className="h-5 w-5 text-brand-600" aria-hidden />
-          <span>{siteConfig.name}</span>
+          <span>{siteConfig.shortName}</span>
         </Link>
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium">
           {nav.map((n) => (

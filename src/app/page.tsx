@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { BusinessCard } from "@/components/business-card";
 import { AdSlot } from "@/components/ad-slot";
 import { siteConfig } from "@/lib/config";
-import { ArrowRight, CheckCircle2, ShieldCheck, Timer } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Timer, BookOpen } from "lucide-react";
 
 export const revalidate = 3600;
 
@@ -32,34 +32,34 @@ export default async function HomePage() {
       <section className="relative overflow-hidden border-b border-ink/5 bg-gradient-to-br from-brand-50 via-white to-white">
         <div className="container py-20 md:py-28 grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-700">
-              <ShieldCheck className="h-3.5 w-3.5" /> Vetted providers · free quotes
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-800">
+              <ShieldCheck className="h-3.5 w-3.5" /> Expert-written · Clinically reviewed
             </span>
             <h1 className="mt-5 font-display text-5xl md:text-6xl font-semibold leading-[1.05]">
-              Feel confident about your <span className="text-brand-600">next treatment.</span>
+              The honest guide to <span className="text-brand-600">aesthetics</span> in the Quad Cities.
             </h1>
             <p className="mt-5 text-lg text-ink-muted max-w-xl">
-              Compare top-rated med spas, cosmetic clinics, and wellness providers near you. Get free
-              quotes from vetted local experts in minutes — no pressure, no spam.
+              Expert-reviewed treatment guides, real local pricing, and free quotes from vetted
+              providers. No hype, no pressure — just the information your smartest friend would give you.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/learn"
+                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white shadow hover:bg-ink/85"
+              >
+                <BookOpen className="h-4 w-4" /> Start with a guide
+              </Link>
               <Link
                 href="/get-quotes"
                 className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-brand-700"
               >
                 Get free quotes <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                href="/services"
-                className="inline-flex items-center rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold hover:bg-ink/5"
-              >
-                Browse treatments
-              </Link>
             </div>
             <ul className="mt-8 grid grid-cols-3 gap-3 text-sm">
-              <Trust icon={<CheckCircle2 className="h-4 w-4" />} label="Licensed providers" />
+              <Trust icon={<CheckCircle2 className="h-4 w-4" />} label="Vetted providers" />
               <Trust icon={<Timer className="h-4 w-4" />} label="Quotes in ~15 min" />
-              <Trust icon={<ShieldCheck className="h-4 w-4" />} label="Your info stays private" />
+              <Trust icon={<ShieldCheck className="h-4 w-4" />} label="Private by default" />
             </ul>
           </div>
           <div className="relative rounded-3xl border border-ink/10 bg-white p-6 shadow-lg">

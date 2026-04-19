@@ -1,8 +1,8 @@
 {
-  "name": "aestheticsleads",
+  "name": "theaestheticsatlas",
   "version": "0.1.0",
   "private": true,
-  "description": "Lead generation platform for the aesthetics, wellness, and cosmetic services industry.",
+  "description": "The Aesthetics Atlas — expert-reviewed treatment guides, real local pricing, and free quotes from vetted providers.",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

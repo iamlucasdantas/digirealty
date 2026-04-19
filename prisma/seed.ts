@@ -167,6 +167,59 @@ async function main() {
     }
   }
 
+  // ─── Editorial team (placeholder personas) ────────────────
+  await prisma.author.upsert({
+    where: { slug: "morgan-ellis" },
+    update: {},
+    create: {
+      slug: "morgan-ellis",
+      name: "Morgan Ellis",
+      title: "Editor-in-Chief",
+      bio: "Morgan has spent a decade writing about beauty and wellness for national magazines and independent publications. She started The Aesthetics Atlas to cut through the hype around cosmetic treatments — one honest, deeply researched guide at a time. She lives in the Midwest with an embarrassingly large skincare fridge.",
+      photoUrl: null,
+      email: "morgan@theaestheticsatlas.com",
+      twitter: "morganellis",
+      instagram: "morgan.ellis",
+      credentials: [
+        "MA Journalism, Northwestern",
+        "Former beauty editor, national lifestyle magazine",
+      ],
+      expertise: [
+        "Injectables",
+        "Laser & light therapy",
+        "Skincare science",
+        "Local market pricing",
+      ],
+      isPlaceholder: true,
+    },
+  });
+
+  await prisma.medicalReviewer.upsert({
+    where: { slug: "jamie-chen-pa-c" },
+    update: {},
+    create: {
+      slug: "jamie-chen-pa-c",
+      name: "Dr. Jamie Chen",
+      credentialSuffix: "PA-C",
+      title: "Dermatology Physician Assistant",
+      bio: "Jamie is a board-certified dermatology physician assistant with eight years of clinical experience in medical and cosmetic dermatology in the Chicago area. Her clinical focus includes injectables, laser therapy, and acne care. She reviews articles for medical accuracy, appropriate risk framing, and alignment with current AAD and ASDS guidelines.",
+      photoUrl: null,
+      licenseState: "IL",
+      yearsExperience: 8,
+      affiliations: [
+        "Society of Dermatology Physician Assistants (SDPA)",
+        "American Academy of Dermatology Associates (AADA)",
+      ],
+      expertise: [
+        "Injectables",
+        "Laser & IPL",
+        "Acne & rosacea",
+        "Medical-grade skincare",
+      ],
+      isPlaceholder: true,
+    },
+  });
+
   // A sample comparison
   const botox = await prisma.service.findUnique({ where: { slug: "botox" } });
   const fillers = await prisma.service.findUnique({ where: { slug: "dermal-fillers" } });
