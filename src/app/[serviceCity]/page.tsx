@@ -137,7 +137,7 @@ export default async function ServiceCityPage({
 
   const breadcrumbs = [
     { name: "Home", url: "/" },
-    { name: service.category.name, url: `/services/${service.category.slug}` },
+    { name: service.category.name, url: `/services/category/${service.category.slug}` },
     { name: service.name, url: `/services/${service.slug}` },
     ...(city ? [{ name: `${city.name}, ${city.state}`, url: `/${city.slug}` }] : []),
     { name: title, url: `/${params.serviceCity}` },

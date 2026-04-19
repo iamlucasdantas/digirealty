@@ -25,6 +25,7 @@ export function SiteFooter() {
           <li><Link href="/editorial-policy">Editorial policy</Link></li>
           <li><Link href="/medical-review-board">Medical review board</Link></li>
           <li><Link href="/how-we-make-money">How we make money</Link></li>
+          <li><Link href="/corrections">Corrections</Link></li>
           <li><Link href="/contact">Contact</Link></li>
         </FooterCol>
         <FooterCol title="For providers">
