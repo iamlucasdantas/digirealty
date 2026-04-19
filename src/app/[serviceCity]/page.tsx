@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { BusinessCard } from "@/components/business-card";
 import { LeadForm } from "@/components/lead-form";
+import { WaitlistBlock } from "@/components/waitlist-block";
 import { AdSlot } from "@/components/ad-slot";
 import { JsonLd } from "@/components/json-ld";
 import { buildMetadata, breadcrumbsJsonLd, faqJsonLd } from "@/lib/seo";
@@ -175,18 +176,39 @@ export default async function ServiceCityPage({
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-xs text-ink-muted">
               {service.avgPriceLow && (
-                <Chip>Typical cost: {formatPriceRange(service.avgPriceLow, service.avgPriceHigh)} {service.priceUnit ? `(${service.priceUnit})` : ""}</Chip>
+                <Chip>
+                  Typical cost:{" "}
+                  {formatPriceRange(service.avgPriceLow, service.avgPriceHigh)}{" "}
+                  {service.priceUnit ? `(${service.priceUnit})` : ""}
+                </Chip>
               )}
-              <Chip>{businesses.length}+ providers listed</Chip>
+              {businesses.length > 0 ? (
+                <Chip>
+                  {businesses.length} verified provider
+                  {businesses.length === 1 ? "" : "s"}
+                </Chip>
+              ) : (
+                <Chip>Recruiting providers in this market</Chip>
+              )}
               {city?.market && <Chip>Serving {city.market.name}</Chip>}
             </div>
           </div>
           <div className="md:col-span-2">
-            <LeadForm
-              serviceSlug={service.slug}
-              serviceName={service.name}
-              citySlug={city?.slug}
-            />
+            {businesses.length === 0 && city ? (
+              <WaitlistBlock
+                serviceName={service.name}
+                cityName={city.name}
+                cityState={city.state}
+                citySlug={city.slug}
+                serviceSlug={service.slug}
+              />
+            ) : (
+              <LeadForm
+                serviceSlug={service.slug}
+                serviceName={service.name}
+                citySlug={city?.slug}
+              />
+            )}
           </div>
         </div>
       </section>

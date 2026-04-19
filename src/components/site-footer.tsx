@@ -52,8 +52,8 @@ export function SiteFooter() {
             <Link href="/how-we-make-money" className="underline">how we make money</Link>.
           </p>
           <p>
-            © {new Date().getFullYear()} {siteConfig.shortName}. All rights reserved. Quad
-            Cities · IA · IL — expanding nationally.
+            © {new Date().getFullYear()} {siteConfig.shortName}. All rights reserved.
+            Currently active in the Quad Cities (Iowa · Illinois).
           </p>
         </div>
       </div>

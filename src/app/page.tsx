@@ -9,7 +9,10 @@ import { ArrowRight, CheckCircle2, ShieldCheck, Timer, BookOpen, Download } from
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [featuredBiz, topServices, cities, thisWeek, leadMagnet] = await Promise.all([
+  // Spec P0.5: every count we show must be scoped correctly. On the home
+  // we're representing the whole active market, so we only count published
+  // provider rows in cities that actually have providers.
+  const [featuredBiz, servicesRaw, citiesRaw, thisWeek, leadMagnet] = await Promise.all([
     prisma.business.findMany({
       where: { status: "PUBLISHED", tier: { in: ["PREMIUM", "FEATURED"] } },
       include: { city: true },
@@ -17,13 +20,19 @@ export default async function HomePage() {
       take: 6,
     }),
     prisma.service.findMany({
-      include: { category: true, _count: { select: { businesses: true } } },
-      orderBy: { businesses: { _count: "desc" } },
-      take: 8,
+      include: {
+        category: true,
+        _count: { select: { businesses: { where: { business: { status: "PUBLISHED" } } } } },
+      },
+      orderBy: { name: "asc" },
+      take: 12,
     }),
     prisma.city.findMany({
-      include: { _count: { select: { businesses: true } } },
-      take: 8,
+      include: {
+        _count: { select: { businesses: { where: { status: "PUBLISHED" } } } },
+      },
+      orderBy: { name: "asc" },
+      take: 12,
     }),
     prisma.blogPost.findMany({
       where: { published: true },
@@ -34,6 +43,11 @@ export default async function HomePage() {
     prisma.leadMagnet.findFirst({ where: { published: true } }),
   ]);
 
+  // Only surface services + cities that have at least one active provider.
+  // We never show "3 pros" when the scoped count would be 0.
+  const topServices = servicesRaw.filter((s) => s._count.businesses > 0).slice(0, 8);
+  const cities = citiesRaw.filter((c) => c._count.businesses > 0).slice(0, 8);
+
   return (
     <>
       {/* Hero */}
@@ -43,23 +57,23 @@ export default async function HomePage() {
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-800">
               <ShieldCheck className="h-3.5 w-3.5" /> Expert-written · Clinically reviewed
             </span>
-            <h1 className="mt-5 font-display text-5xl md:text-6xl font-semibold leading-[1.05]">
+            <h1 className="h1-fluid mt-5 font-display font-semibold">
               The honest guide to <span className="text-brand-600">aesthetics</span> in the Quad Cities.
             </h1>
             <p className="mt-5 text-lg text-ink-muted max-w-xl">
               Expert-reviewed treatment guides, real local pricing, and free quotes from vetted
               providers. No hype, no pressure — just the information your smartest friend would give you.
             </p>
-            <div className="mt-7 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-col sm:flex-row flex-wrap gap-3">
               <Link
                 href="/learn"
-                className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white shadow hover:bg-ink/85"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white shadow hover:bg-ink/85"
               >
                 <BookOpen className="h-4 w-4" /> Start with a guide
               </Link>
               <Link
                 href="/get-quotes"
-                className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-brand-700"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-5 py-3 text-sm font-semibold text-ink hover:bg-ink/5"
               >
                 Get free quotes <ArrowRight className="h-4 w-4" />
               </Link>
@@ -215,7 +229,7 @@ export default async function HomePage() {
         <div className="rounded-3xl bg-ink p-10 md:p-14 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <p className="text-brand-200 font-semibold">For providers</p>
-            <h2 className="mt-2 font-display text-3xl md:text-4xl font-semibold">
+            <h2 className="mt-2 h2-fluid font-display font-semibold">
               Fill your calendar with in-market patients.
             </h2>
             <p className="mt-3 text-white/80 max-w-2xl">
@@ -256,7 +270,7 @@ function SectionHeader({
     <div className="flex items-end justify-between gap-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">{eyebrow}</p>
-        <h2 className="mt-1 font-display text-3xl md:text-4xl font-semibold">{title}</h2>
+        <h2 className="mt-1 h2-fluid font-display font-semibold">{title}</h2>
       </div>
       {cta && (
         <Link href={cta.href} className="text-sm font-semibold text-brand-700 hover:underline">
