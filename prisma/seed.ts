@@ -145,6 +145,8 @@ async function main() {
         descShort: "Full-service med spa with injectables, skincare, and body contouring.",
         ratingAvg: 4.6,
         ratingCount: 61,
+        unclaimed: true,
+        importedFrom: "manual_seed",
         services: [botox, fillers, laser].filter(Boolean),
       },
     ];
