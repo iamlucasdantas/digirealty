@@ -163,18 +163,20 @@ export default async function ServiceCityPage({
         ]}
       />
       {/* Hero */}
-      <section className="border-b border-ink/5 bg-gradient-to-br from-brand-50 via-white to-white">
+      <section className="border-b border-clay-100 bg-gradient-to-b from-blush-100 via-blush-50 to-cream">
         <div className="container py-14 md:py-20 grid md:grid-cols-5 gap-10">
           <div className="md:col-span-3">
             <Breadcrumbs items={breadcrumbs} />
-            <h1 className="mt-3 font-display text-4xl md:text-5xl font-semibold">{title}</h1>
-            <p className="mt-4 text-lg text-ink-muted">
+            <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold text-balance">
+              {title}
+            </h1>
+            <p className="mt-5 text-lg text-ink-muted leading-relaxed">
               {seoPage?.intro ??
                 (city
-                  ? `Compare top-rated ${service.name} providers in ${city.name} with verified reviews and transparent pricing. Get free quotes in minutes.`
-                  : `Compare top ${service.name} providers near you. Verified reviews and transparent pricing.`)}
+                  ? `Compare top-rated ${service.name} providers in ${city.name} with real local pricing and verified listings.`
+                  : `Compare ${service.name} providers near you with real local pricing.`)}
             </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs text-ink-muted">
+            <div className="mt-6 flex flex-wrap gap-2 text-xs text-ink-muted">
               {service.avgPriceLow && (
                 <Chip>
                   Typical cost:{" "}
@@ -256,12 +258,14 @@ export default async function ServiceCityPage({
       {/* FAQ */}
       {faq.length > 0 && (
         <section className="container py-14 max-w-3xl">
-          <h2 className="font-display text-3xl font-semibold">Frequently asked questions</h2>
-          <div className="mt-6 divide-y divide-ink/5 rounded-2xl border border-ink/10 bg-white">
+          <h2 className="h2-fluid font-display font-semibold text-balance">
+            Frequently asked <span className="italic-accent">questions</span>.
+          </h2>
+          <div className="mt-8 divide-y divide-clay-100 rounded-3xl border border-clay-100 bg-bone">
             {faq.map((f, i) => (
               <details key={i} className="group p-5">
-                <summary className="cursor-pointer font-semibold">{f.q}</summary>
-                <p className="mt-2 text-ink/80">{f.a}</p>
+                <summary className="cursor-pointer font-semibold text-ink">{f.q}</summary>
+                <p className="mt-3 text-ink/80 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
@@ -273,7 +277,7 @@ export default async function ServiceCityPage({
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full bg-white/70 border border-ink/10 px-3 py-1 font-medium">
+    <span className="rounded-full bg-bone/80 border border-clay-100 px-3 py-1 font-medium text-ink/75">
       {children}
     </span>
   );

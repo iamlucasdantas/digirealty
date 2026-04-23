@@ -23,28 +23,34 @@ export default async function GetQuotesPage({ searchParams }: Props) {
   if (!service && searchParams.service) notFound();
 
   return (
-    <div className="container py-14 md:py-20 grid md:grid-cols-5 gap-10">
+    <div className="container py-16 md:py-20 grid md:grid-cols-5 gap-10 lg:gap-14">
       <div className="md:col-span-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          Free · Vetted providers · 45 seconds
-        </p>
-        <h1 className="mt-2 font-display text-4xl md:text-5xl font-semibold">
-          {service ? `Get free ${service.name} quotes` : "Get free quotes from top aesthetics providers"}
+        <p className="eyebrow">Free · Vetted providers · 45 seconds</p>
+        <h1 className="mt-4 font-display text-4xl md:text-5xl font-semibold text-balance">
+          {service ? (
+            <>
+              <span className="italic-accent">{service.name}</span> quotes from vetted local providers.
+            </>
+          ) : (
+            <>
+              <span className="italic-accent">Quotes</span> from vetted local providers.
+            </>
+          )}
         </h1>
-        <p className="mt-4 text-lg text-ink-muted">
-          We match you with up to 3 local, licensed providers who will reach out with personalized
-          pricing. You choose who to respond to — no obligation.
+        <p className="mt-5 text-lg text-ink-muted leading-relaxed">
+          We match you with up to three local, licensed providers who reach out with
+          personalized pricing. You choose who to respond to — no obligation, no spam.
         </p>
 
-        <ul className="mt-8 space-y-3 text-sm">
-          <Bullet>Licensed & insurance-verified providers only</Bullet>
-          <Bullet>Real pricing — not a single generic estimate</Bullet>
-          <Bullet>Your contact info is never sold to third parties</Bullet>
+        <ul className="mt-10 space-y-3 text-sm">
+          <Bullet>Licensed and insurance-verified providers only</Bullet>
+          <Bullet>Real local pricing — not one generic estimate</Bullet>
+          <Bullet>Your contact info is never sold</Bullet>
         </ul>
       </div>
 
       <div className="md:col-span-2">
-        <Suspense fallback={<div className="h-64 rounded-3xl bg-slate-100" />}>
+        <Suspense fallback={<div className="h-64 rounded-3xl bg-sand" />}>
           <LeadForm
             serviceSlug={serviceSlug}
             serviceName={service?.name}
@@ -60,7 +66,7 @@ export default async function GetQuotesPage({ searchParams }: Props) {
 function Bullet({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="mt-0.5 inline-block h-5 w-5 shrink-0 rounded-full bg-brand-100 text-brand-700 text-center text-xs font-bold leading-5">
+      <span className="mt-0.5 inline-block h-5 w-5 shrink-0 rounded-full bg-clay-100 text-clay-700 text-center text-xs font-bold leading-5">
         ✓
       </span>
       <span>{children}</span>

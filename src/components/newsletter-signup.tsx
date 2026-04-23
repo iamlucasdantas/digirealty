@@ -81,33 +81,35 @@ export function NewsletterSignup({
 
   const container =
     variant === "hero"
-      ? "rounded-3xl border border-ink/10 bg-white p-6 shadow-sm"
+      ? "rounded-3xl border border-clay-100 bg-bone p-6 shadow-soft"
       : variant === "card"
-      ? "rounded-2xl border border-brand-200 bg-brand-50/50 p-6"
+      ? "rounded-3xl border border-clay-200 bg-gradient-to-br from-blush-50 to-cream p-6 shadow-soft"
       : variant === "footer"
       ? ""
-      : "rounded-2xl border border-ink/10 bg-white p-5";
+      : "rounded-3xl border border-clay-100 bg-bone p-5";
 
   return (
     <div className={cn(container, className)}>
       {(variant === "hero" || variant === "card" || variant === "inline") && (
         <>
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand-700">
+          <p className="flex items-center gap-2 eyebrow">
             <Mail className="h-3.5 w-3.5" aria-hidden /> Newsletter
           </p>
-          <h3 className="mt-1 font-display text-2xl font-semibold">{title}</h3>
-          <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>
+          <h3 className="mt-3 font-display text-2xl font-semibold text-ink text-balance">
+            {title}
+          </h3>
+          <p className="mt-2 text-sm text-ink-muted">{subtitle}</p>
         </>
       )}
 
-      <form onSubmit={submit} className="mt-4 space-y-3">
+      <form onSubmit={submit} className="mt-5 space-y-3">
         {variant !== "footer" && (
           <input
             type="text"
             placeholder="First name (optional)"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm placeholder:text-ink-faint focus:border-clay-500 focus:ring-2 focus:ring-clay-100 focus:outline-none"
             autoComplete="given-name"
           />
         )}
@@ -118,13 +120,13 @@ export function NewsletterSignup({
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 rounded-xl border border-ink/15 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            className="flex-1 rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm placeholder:text-ink-faint focus:border-clay-500 focus:ring-2 focus:ring-clay-100 focus:outline-none"
             autoComplete="email"
           />
           <button
             type="submit"
             disabled={state === "loading"}
-            className="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-brand-700 disabled:opacity-50"
+            className="rounded-xl bg-clay-500 px-4 py-2 text-sm font-semibold text-white shadow-soft hover:bg-clay-600 disabled:opacity-50"
           >
             {state === "loading" ? "…" : ctaLabel}
           </button>

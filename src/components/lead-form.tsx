@@ -88,12 +88,11 @@ export function LeadForm({ serviceSlug, serviceName, citySlug, businessSlug, com
   const title = serviceName ? `Get free ${serviceName} quotes` : "Get free quotes";
 
   return (
-    <div className={compact ? "" : "rounded-3xl border border-ink/10 bg-white p-6 shadow-sm"}>
+    <div className={compact ? "" : "rounded-3xl border border-clay-100 bg-bone p-6 shadow-soft"}>
       {!compact && (
         <>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Step {step} of 4</p>
-          <h3 className="mt-1 font-display text-2xl font-semibold">{title}</h3>
-          <p className="text-sm text-ink-muted">Free · Takes 45 seconds · No spam</p>
+          <p className="eyebrow">Step {step} of 4 · Free, no spam</p>
+          <h3 className="mt-3 font-display text-2xl font-semibold text-ink text-balance">{title}</h3>
         </>
       )}
 
@@ -162,7 +161,7 @@ export function LeadForm({ serviceSlug, serviceName, citySlug, businessSlug, com
             </Field>
             <Field label="Anything else we should share with providers? (optional)">
               <textarea
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                className="w-full rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm placeholder:text-ink-faint focus:border-clay-500 focus:ring-2 focus:ring-clay-100 focus:outline-none"
                 rows={3}
                 maxLength={2000}
                 value={form.message}
@@ -201,14 +200,14 @@ export function LeadForm({ serviceSlug, serviceName, citySlug, businessSlug, com
           <button
             type="submit"
             disabled={submitting || (step === 1 && !form.timeframe) || (step === 3 && !form.firstName)}
-            className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-brand-700 disabled:opacity-50"
+            className="rounded-full bg-clay-500 px-5 py-2.5 text-sm font-semibold text-white shadow-soft hover:bg-clay-600 disabled:opacity-50"
           >
-            {step < 4 ? "Continue" : submitting ? "Sending…" : "Get my free quotes"}
+            {step < 4 ? "Continue" : submitting ? "Sending…" : "Request appointment"}
           </button>
         </div>
         <p className="pt-1 text-[11px] text-ink-muted">
           By submitting, you agree to our privacy policy. We share your request with up to 3
-          matching providers.
+          matching providers — never anyone else.
         </p>
       </form>
     </div>
@@ -244,7 +243,7 @@ function Input({
       required={required}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+      className="w-full rounded-xl border border-clay-200 bg-cream px-3 py-2 text-sm placeholder:text-ink-faint focus:border-clay-500 focus:ring-2 focus:ring-clay-100 focus:outline-none"
     />
   );
 }
@@ -265,10 +264,10 @@ function RadioGroup({
       {options.map((o) => (
         <label
           key={o.value}
-          className={`cursor-pointer rounded-xl border px-4 py-3 text-sm font-medium ${
+          className={`cursor-pointer rounded-xl border px-4 py-3 text-sm font-medium transition ${
             value === o.value
-              ? "border-brand-500 bg-brand-50 text-brand-800"
-              : "border-ink/15 hover:border-ink/30"
+              ? "border-clay-500 bg-clay-50 text-clay-800"
+              : "border-clay-100 bg-cream hover:border-clay-300"
           }`}
         >
           <input

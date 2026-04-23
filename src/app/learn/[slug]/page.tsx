@@ -98,27 +98,23 @@ export default async function BlogPostPage({
         ]}
       />
 
-      <article className="container py-10 md:py-14 max-w-3xl">
+      <article className="container py-14 md:py-20 max-w-3xl">
         <nav aria-label="Breadcrumb" className="text-xs text-ink-muted">
           <Link href="/" className="hover:text-ink">
             Home
           </Link>
-          <span className="mx-1.5">/</span>
+          <span className="mx-1.5 text-ink-faint">/</span>
           <Link href="/learn" className="hover:text-ink">
             Guides
           </Link>
         </nav>
 
-        {post.isPillar && (
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-600">
-            Pillar guide
-          </p>
-        )}
-        <h1 className="mt-2 font-display text-4xl md:text-5xl font-semibold">
+        {post.isPillar && <p className="mt-4 eyebrow">Pillar guide</p>}
+        <h1 className="mt-3 font-display text-4xl md:text-5xl font-semibold text-balance">
           {post.title}
         </h1>
         {post.excerpt && (
-          <p className="mt-4 text-lg text-ink-muted">{post.excerpt}</p>
+          <p className="mt-5 text-lg text-ink-muted leading-relaxed">{post.excerpt}</p>
         )}
 
         <MedicallyReviewed
@@ -162,9 +158,9 @@ export default async function BlogPostPage({
         />
 
         {/* Transparency footer inside the article */}
-        <section className="mt-12 rounded-2xl border border-ink/10 bg-slate-50 p-5 text-sm text-ink-muted">
-          <p className="font-semibold text-ink">Why you can trust this article</p>
-          <ul className="mt-2 space-y-1">
+        <section className="mt-14 rounded-3xl border border-clay-100 bg-sand/60 p-6 text-sm text-ink-muted">
+          <p className="eyebrow text-ink-muted">Why you can trust this article</p>
+          <ul className="mt-3 space-y-1.5">
             <li>
               Written by our editorial team and, when marked above, reviewed by a
               licensed clinician.
