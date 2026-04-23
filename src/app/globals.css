@@ -12,36 +12,65 @@ html {
 }
 
 body {
-  @apply bg-white text-ink antialiased;
-  /* Prevent horizontal overflow at small viewports. */
+  @apply bg-cream text-ink antialiased;
   overflow-x: hidden;
+  font-feature-settings: "ss01", "cv11";
 }
 
-/* Fluid hero headlines: scale from 360px viewport up to desktop without
-   clipping or needing a dozen responsive variants. */
+/* ── Editorial utilities ──────────────────────────────────────
+   The reference uses italic as a deliberate design device —
+   single emphasized words inside otherwise upright serif heads,
+   slightly warmer color to catch the eye. */
 @layer utilities {
+  .italic-accent {
+    @apply italic text-clay-500;
+    font-feature-settings: "ss01";
+  }
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-eyebrow text-clay-600;
+  }
   .h1-fluid {
-    font-size: clamp(2rem, 6.5vw + 0.5rem, 3.75rem);
-    line-height: 1.05;
+    font-size: clamp(2.25rem, 6vw + 0.5rem, 4.25rem);
+    line-height: 1.03;
+    letter-spacing: -0.01em;
   }
   .h2-fluid {
-    font-size: clamp(1.5rem, 3.5vw + 0.5rem, 2.25rem);
-    line-height: 1.15;
+    font-size: clamp(1.75rem, 3.5vw + 0.5rem, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
   }
+  .text-balance { text-wrap: balance; }
 }
 
+/* ── MDX / prose article styling ──────────────────────────────
+   Used by /learn/[slug], /about, /editorial-policy, etc. */
 .prose-al :where(h2) {
-  @apply font-display text-3xl font-semibold mt-10 mb-4;
+  @apply font-display text-3xl font-semibold mt-12 mb-4 text-ink text-balance;
 }
-
 .prose-al :where(h3) {
-  @apply font-display text-xl font-semibold mt-6 mb-3;
+  @apply font-display text-xl font-semibold mt-8 mb-3 text-ink;
 }
-
 .prose-al :where(p) {
-  @apply my-4 leading-relaxed text-ink/90;
+  @apply my-4 leading-relaxed text-ink/85;
 }
-
 .prose-al :where(ul) {
-  @apply list-disc pl-6 space-y-1 my-4;
+  @apply list-disc pl-6 space-y-1.5 my-4 text-ink/85;
+}
+.prose-al :where(ol) {
+  @apply list-decimal pl-6 space-y-1.5 my-4 text-ink/85;
+}
+.prose-al :where(a) {
+  @apply text-clay-600 underline decoration-clay-300 underline-offset-2 hover:text-clay-700 hover:decoration-clay-500;
+}
+.prose-al :where(strong) {
+  @apply font-semibold text-ink;
+}
+.prose-al :where(em) {
+  @apply italic text-clay-600;
+}
+.prose-al :where(code) {
+  @apply rounded bg-sand px-1.5 py-0.5 text-[0.9em] text-ink;
+}
+.prose-al :where(blockquote) {
+  @apply border-l-2 border-clay-300 pl-4 italic text-ink/75;
 }
